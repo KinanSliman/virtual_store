@@ -25,6 +25,7 @@ const CATEGORIES = [
 const PRODUCTS = [
   {
     name: "Red Apples",
+    imageUrl: "/products/apples.svg",
     category: "fruits",
     description:
       "Crisp, sweet red apples picked at peak ripeness. Perfect for snacking, baking, or juicing. Sold per kilogram.",
@@ -36,6 +37,7 @@ const PRODUCTS = [
   },
   {
     name: "Bananas",
+    imageUrl: "/products/bananas.svg",
     category: "fruits",
     description:
       "Naturally sweet Cavendish bananas, rich in potassium and ideal for breakfast or smoothies. Sold per bunch.",
@@ -47,6 +49,7 @@ const PRODUCTS = [
   },
   {
     name: "Fresh Tomatoes",
+    imageUrl: "/products/tomatoes.svg",
     category: "vegetables",
     description:
       "Vine-ripened tomatoes with a deep red color and rich flavor. Great for salads, sauces, and sandwiches.",
@@ -58,6 +61,7 @@ const PRODUCTS = [
   },
   {
     name: "Broccoli",
+    imageUrl: "/products/broccoli.svg",
     category: "vegetables",
     description:
       "Fresh green broccoli crowns, packed with vitamins C and K. Steam, roast, or stir-fry.",
@@ -69,6 +73,7 @@ const PRODUCTS = [
   },
   {
     name: "Whole Milk",
+    imageUrl: "/products/milk.svg",
     category: "dairy",
     description:
       "Farm-fresh whole milk, pasteurized and homogenized. 1 liter carton with a creamy, full-bodied taste.",
@@ -80,6 +85,7 @@ const PRODUCTS = [
   },
   {
     name: "Cheddar Cheese",
+    imageUrl: "/products/cheddar.svg",
     category: "dairy",
     description:
       "Aged cheddar with a sharp, nutty flavor. 250g block, ideal for sandwiches, burgers, and cheese boards.",
@@ -91,6 +97,7 @@ const PRODUCTS = [
   },
   {
     name: "Sourdough Bread",
+    imageUrl: "/products/sourdough.svg",
     category: "bakery",
     description:
       "Artisan sourdough loaf with a crackly crust and airy crumb, baked fresh every morning.",
@@ -102,6 +109,7 @@ const PRODUCTS = [
   },
   {
     name: "Croissants",
+    imageUrl: "/products/croissants.svg",
     category: "bakery",
     description:
       "Buttery, flaky croissants baked golden. Pack of 4 — perfect with coffee or filled with jam.",
@@ -113,6 +121,7 @@ const PRODUCTS = [
   },
   {
     name: "Orange Juice",
+    imageUrl: "/products/orange-juice.svg",
     category: "beverages",
     description:
       "100% squeezed orange juice, no added sugar, no concentrate. 1 liter bottle, chilled.",
@@ -124,6 +133,7 @@ const PRODUCTS = [
   },
   {
     name: "Sparkling Water",
+    imageUrl: "/products/sparkling-water.svg",
     category: "beverages",
     description:
       "Refreshing sparkling mineral water with fine bubbles. 6-pack of 500ml bottles.",
@@ -135,6 +145,7 @@ const PRODUCTS = [
   },
   {
     name: "Potato Chips",
+    imageUrl: "/products/chips.svg",
     category: "snacks",
     description:
       "Kettle-cooked potato chips with sea salt. Crunchy, golden, and dangerously snackable. 150g bag.",
@@ -146,6 +157,7 @@ const PRODUCTS = [
   },
   {
     name: "Dark Chocolate",
+    imageUrl: "/products/chocolate.svg",
     category: "snacks",
     description:
       "70% cocoa dark chocolate bar, smooth and intense with notes of red fruit. 100g bar.",

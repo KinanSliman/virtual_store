@@ -125,6 +125,22 @@ export function ProductForm({
         </div>
       </div>
 
+      <div>
+        <label className={labelClass} htmlFor="imageUrl">
+          Image URL{" "}
+          <span className="text-neutral-500">
+            (e.g. /products/apples.svg — shown in the store popup)
+          </span>
+        </label>
+        <input
+          id="imageUrl"
+          name="imageUrl"
+          defaultValue={product?.imageUrl ?? ""}
+          placeholder="/products/…"
+          className={inputClass}
+        />
+      </div>
+
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className={labelClass} htmlFor="shelf">

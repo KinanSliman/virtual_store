@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Sky, Text } from "@react-three/drei";
 import * as THREE from "three";
+import { playFootstep } from "@/lib/sfx";
 import type { StoreProduct } from "./types";
 
 /*
@@ -50,6 +51,7 @@ export function PlayerControls({
   const keys = useRef(new Set<string>());
   const look = useRef({ yaw: 0, pitch: 0 });
   const dragging = useRef<{ x: number; y: number } | null>(null);
+  const strideDistance = useRef(0);
 
   useEffect(() => {
     camera.rotation.order = "YXZ";
@@ -148,6 +150,13 @@ export function PlayerControls({
     }
 
     camera.position.set(next.x, EYE_HEIGHT, next.z);
+
+    // footsteps: one soft thud per stride actually walked
+    strideDistance.current += next.distanceTo(prev);
+    if (strideDistance.current > 0.85) {
+      strideDistance.current = 0;
+      playFootstep();
+    }
   });
 
   return null;

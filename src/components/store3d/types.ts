@@ -6,6 +6,7 @@ export type StoreProduct = {
   price: string;
   stock: number;
   color: string;
+  imageUrl: string | null;
   shelf: number;
   shelfSlot: number;
   category: string;

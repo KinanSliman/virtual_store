@@ -3,7 +3,9 @@
 import { useCallback, useState } from "react";
 import Link from "next/link";
 import { Canvas } from "@react-three/fiber";
+import Image from "next/image";
 import { useCart, cartTotal } from "@/lib/cart-store";
+import { playDoorCreak } from "@/lib/sfx";
 import { Scene } from "./Scene";
 import type { StoreProduct } from "./types";
 
@@ -97,7 +99,11 @@ export function VirtualStore({ products }: { products: StoreProduct[] }) {
             </ul>
             <button
               type="button"
-              onClick={() => setEntered(true)}
+              onClick={() => {
+                // user gesture — safe to start the AudioContext
+                playDoorCreak();
+                setEntered(true);
+              }}
               className="w-full rounded-lg bg-emerald-600 px-4 py-3 font-medium text-white transition hover:bg-emerald-500"
             >
               Open the door
@@ -219,6 +225,16 @@ export function VirtualStore({ products }: { products: StoreProduct[] }) {
             className="mx-4 w-full max-w-sm rounded-2xl border border-white/10 bg-neutral-900/95 p-6 text-neutral-100 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
+            {selected.imageUrl && (
+              <Image
+                src={selected.imageUrl}
+                alt={selected.name}
+                width={112}
+                height={112}
+                unoptimized
+                className="mx-auto mb-4 h-28 w-28 rounded-xl"
+              />
+            )}
             <div className="mb-1 flex items-center gap-2">
               <span
                 className="h-4 w-4 rounded-sm"

@@ -19,6 +19,7 @@ export default async function StorePage() {
       price: products.price,
       stock: products.stock,
       color: products.color,
+      imageUrl: products.imageUrl,
       shelf: products.shelf,
       shelfSlot: products.shelfSlot,
       category: categories.name,

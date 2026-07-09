@@ -16,6 +16,7 @@ function parseProductForm(formData: FormData) {
   const stock = Number(formData.get("stock") ?? 0);
   const categoryId = Number(formData.get("categoryId"));
   const color = String(formData.get("color") ?? "#22c55e");
+  const imageUrl = String(formData.get("imageUrl") ?? "").trim() || null;
   const shelf = Number(formData.get("shelf") ?? 1);
   const shelfSlot = Number(formData.get("shelfSlot") ?? 0);
   const isActive = formData.get("isActive") === "on";
@@ -40,6 +41,7 @@ function parseProductForm(formData: FormData) {
       stock,
       categoryId,
       color,
+      imageUrl,
       shelf,
       shelfSlot,
       isActive,
