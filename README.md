@@ -5,7 +5,7 @@ A portfolio project: a **3D grocery store you can walk through in the browser**,
 | Route | What it is |
 |---|---|
 | `/` | The 3D storefront — walk in, browse two shelves, click products, fill a cart, demo checkout (no payment) |
-| `/dashboard` | Product CRUD — create, edit, delete, stock, shelf placement |
+| `/dashboard` | Product CRUD — create, edit, delete, stock, shelf placement, image upload |
 | `/dashboard/analytics` | Revenue per day, top sellers, most-viewed products, stock by category, low-stock alerts |
 
 ## Controls (3D store)
@@ -43,6 +43,24 @@ A portfolio project: a **3D grocery store you can walk through in the browser**,
    ```
 
    Open http://localhost:3000 for the store, http://localhost:3000/dashboard to manage it.
+
+## Product images
+
+Each product can carry an image, shown in the store popup and in the dashboard
+table. There are two sources:
+
+- The **seeded illustrations** in `public/products/*.svg`, served statically.
+- **Your own uploads** — the product form takes a file from your computer by
+  click or drag-and-drop, previews it before saving, and stores it in the
+  gitignored `uploads/` directory (outside `public/`, so writing one doesn't
+  restart the dev server). Uploaded files get a UUID filename and are served by
+  `/api/images/[filename]`, which only accepts that exact name shape, so a
+  request can't walk out of the upload directory.
+
+PNG, JPEG, WebP, GIF, and SVG are accepted, up to 4MB (`serverActions.bodySizeLimit`
+in `next.config.ts` allows 5MB of request body to leave room for form overhead).
+Replacing or removing an image — or deleting the product — also deletes the file
+from disk. Seeded illustrations are never deleted.
 
 ## How data flows
 

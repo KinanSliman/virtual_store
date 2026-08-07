@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import Link from "next/link";
 import type { Category, Product } from "@/db/schema";
 import type { ProductFormState } from "@/app/dashboard/actions";
+import { ImageUploadField } from "./image-upload-field";
 
 const inputClass =
   "w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm outline-none focus:border-emerald-500";
@@ -24,7 +25,11 @@ export function ProductForm({
   const [state, formAction, pending] = useActionState(action, {});
 
   return (
-    <form action={formAction} className="max-w-xl space-y-4">
+    <form
+      action={formAction}
+      encType="multipart/form-data"
+      className="max-w-xl space-y-4"
+    >
       {state.error && (
         <p className="rounded-md border border-red-900 bg-red-950 px-3 py-2 text-sm text-red-400">
           {state.error}
@@ -125,21 +130,7 @@ export function ProductForm({
         </div>
       </div>
 
-      <div>
-        <label className={labelClass} htmlFor="imageUrl">
-          Image URL{" "}
-          <span className="text-neutral-500">
-            (e.g. /products/apples.svg — shown in the store popup)
-          </span>
-        </label>
-        <input
-          id="imageUrl"
-          name="imageUrl"
-          defaultValue={product?.imageUrl ?? ""}
-          placeholder="/products/…"
-          className={inputClass}
-        />
-      </div>
+      <ImageUploadField currentUrl={product?.imageUrl ?? null} />
 
       <div className="grid grid-cols-2 gap-4">
         <div>

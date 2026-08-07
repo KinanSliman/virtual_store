@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { asc, eq } from "drizzle-orm";
 import { db, categories, products } from "@/db";
 import { formatPrice } from "@/lib/format";
@@ -14,6 +15,7 @@ export default async function ProductsPage() {
       price: products.price,
       stock: products.stock,
       color: products.color,
+      imageUrl: products.imageUrl,
       shelf: products.shelf,
       shelfSlot: products.shelfSlot,
       isActive: products.isActive,
@@ -59,11 +61,22 @@ export default async function ProductsPage() {
               {rows.map((p) => (
                 <tr key={p.id} className="hover:bg-neutral-900/60">
                   <td className="px-4 py-3">
-                    <span className="flex items-center gap-2">
-                      <span
-                        className="inline-block h-3 w-3 rounded-sm"
-                        style={{ backgroundColor: p.color }}
-                      />
+                    <span className="flex items-center gap-3">
+                      {p.imageUrl ? (
+                        <Image
+                          src={p.imageUrl}
+                          alt=""
+                          width={32}
+                          height={32}
+                          unoptimized
+                          className="h-8 w-8 shrink-0 rounded-md bg-neutral-800 object-contain"
+                        />
+                      ) : (
+                        <span
+                          className="h-8 w-8 shrink-0 rounded-md"
+                          style={{ backgroundColor: p.color }}
+                        />
+                      )}
                       {p.name}
                     </span>
                   </td>

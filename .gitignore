@@ -25,6 +25,9 @@
 *.pem
 .claude/settings.local.json
 
+# product images uploaded through the dashboard
+/uploads
+
 # debug
 npm-debug.log*
 yarn-debug.log*
