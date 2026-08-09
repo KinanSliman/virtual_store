@@ -5,10 +5,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Sky, Text } from "@react-three/drei";
+import { Sky } from "@react-three/drei";
 import * as THREE from "three";
 import { playFootstep } from "@/lib/sfx";
-import type { StoreProduct } from "./types";
+import type { Locale } from "@/lib/i18n";
+import { moveInput } from "./controls-state";
+import { TextPlane } from "./TextPlane";
+import { productName, type StoreProduct } from "./types";
 
 /*
  * Store layout (top view, y up):
@@ -32,7 +35,7 @@ const FLOOR_COLOR = "#b8b2a7";
 const SHELF_COLOR = "#8a5a2b";
 
 // ---------------------------------------------------------------------------
-// Player: WASD/arrow movement + hold-left-mouse-drag look
+// Player: WASD/arrow keys or on-screen stick to move, drag to look
 // ---------------------------------------------------------------------------
 
 const MOVE_KEYS = new Set([
@@ -50,7 +53,7 @@ export function PlayerControls({
   const { camera, gl } = useThree();
   const keys = useRef(new Set<string>());
   const look = useRef({ yaw: 0, pitch: 0 });
-  const dragging = useRef<{ x: number; y: number } | null>(null);
+  const dragging = useRef<{ x: number; y: number; id: number } | null>(null);
   const strideDistance = useRef(0);
 
   useEffect(() => {
@@ -75,14 +78,19 @@ export function PlayerControls({
 
   useEffect(() => {
     const el = gl.domElement;
+    // pointer events cover mouse drag and touch swipe alike; the canvas sets
+    // touch-action: none so a swipe looks around instead of scrolling
     const onDown = (e: PointerEvent) => {
-      if (e.button === 0) dragging.current = { x: e.clientX, y: e.clientY };
+      if (e.button !== 0) return;
+      dragging.current = { x: e.clientX, y: e.clientY, id: e.pointerId };
     };
     const onMove = (e: PointerEvent) => {
-      if (!dragging.current) return;
-      const dx = e.clientX - dragging.current.x;
-      const dy = e.clientY - dragging.current.y;
-      dragging.current = { x: e.clientX, y: e.clientY };
+      const drag = dragging.current;
+      if (!drag || e.pointerId !== drag.id) return;
+      const dx = e.clientX - drag.x;
+      const dy = e.clientY - drag.y;
+      drag.x = e.clientX;
+      drag.y = e.clientY;
       look.current.yaw -= dx * 0.005;
       look.current.pitch = THREE.MathUtils.clamp(
         look.current.pitch - dy * 0.005,
@@ -90,14 +98,18 @@ export function PlayerControls({
         1.2,
       );
     };
-    const onUp = () => (dragging.current = null);
+    const onUp = (e: PointerEvent) => {
+      if (dragging.current?.id === e.pointerId) dragging.current = null;
+    };
     el.addEventListener("pointerdown", onDown);
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
     return () => {
       el.removeEventListener("pointerdown", onDown);
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
     };
   }, [gl]);
 
@@ -107,13 +119,20 @@ export function PlayerControls({
     if (!enabled) return;
 
     const k = keys.current;
-    let forward = 0;
-    let strafe = 0;
+    let forward = moveInput.forward;
+    let strafe = moveInput.strafe;
     if (k.has("keyw") || k.has("arrowup")) forward += 1;
     if (k.has("keys") || k.has("arrowdown")) forward -= 1;
     if (k.has("keya") || k.has("arrowleft")) strafe -= 1;
     if (k.has("keyd") || k.has("arrowright")) strafe += 1;
-    if (!forward && !strafe) return;
+
+    const magnitude = Math.hypot(forward, strafe);
+    if (magnitude < 0.01) return;
+    // keep diagonals from being faster than straight lines, and let a
+    // half-pushed stick walk at half speed
+    const scale = Math.min(magnitude, 1) / magnitude;
+    forward *= scale;
+    strafe *= scale;
 
     const yaw = look.current.yaw;
     const step = WALK_SPEED * Math.min(delta, 0.05);
@@ -212,7 +231,7 @@ function Door({ open }: { open: boolean }) {
 // Room: floor, walls, ceiling, sign
 // ---------------------------------------------------------------------------
 
-function Room() {
+function Room({ storeName }: { storeName: string }) {
   const wallMat = <meshStandardMaterial color={WALL_COLOR} />;
   const width = ROOM.maxX - ROOM.minX;
   const depth = ROOM.maxZ - ROOM.minZ;
@@ -270,16 +289,17 @@ function Room() {
         <boxGeometry args={[DOOR_HALF_WIDTH * 2, 1, 0.2]} />
         {wallMat}
       </mesh>
-      {/* storefront sign */}
-      <Text
-        position={[0, 3.45, 0.15]}
+      {/* storefront sign — the name set in the dashboard */}
+      <TextPlane
+        text={storeName}
+        position={[0, 3.45, 0.12]}
+        width={5}
+        height={0.8}
         fontSize={0.42}
         color="#1c4d2e"
-        anchorX="center"
-        anchorY="middle"
-      >
-        FRESH MART
-      </Text>
+        outlineWidth={0}
+        bold
+      />
     </group>
   );
 }
@@ -304,7 +324,11 @@ function slotTransform(product: StoreProduct) {
   // products sit on the aisle-facing half of the board
   const faceAisle = product.shelf === 1 ? 1 : -1; // +x for left shelf
   return {
-    position: [x + faceAisle * 0.25, boardY + 0.3, z] as const,
+    position: [x + faceAisle * 0.25, boardY + 0.3, z] as [
+      number,
+      number,
+      number,
+    ],
     rotationY: faceAisle === 1 ? Math.PI / 2 : -Math.PI / 2,
     faceAisle,
   };
@@ -338,9 +362,11 @@ function ShelfUnit({ x }: { x: number }) {
 
 function ProductBox({
   product,
+  locale,
   onSelect,
 }: {
   product: StoreProduct;
+  locale: Locale;
   onSelect: (p: StoreProduct) => void;
 }) {
   const [hovered, setHovered] = useState(false);
@@ -355,7 +381,7 @@ function ProductBox({
   }, [hovered]);
 
   return (
-    <group position={position as unknown as THREE.Vector3Tuple}>
+    <group position={position}>
       <mesh
         castShadow
         scale={hovered ? 1.12 : 1}
@@ -376,24 +402,14 @@ function ProductBox({
           emissiveIntensity={hovered ? 0.35 : 0}
         />
       </mesh>
-      <Text
-        position={[
-          rotationY === Math.PI / 2 ? 0.4 : -0.4,
-          0.02,
-          0,
-        ]}
+      <TextPlane
+        text={`${productName(product, locale)}\n$${Number(product.price).toFixed(2)}`}
+        position={[rotationY === Math.PI / 2 ? 0.42 : -0.42, 0.02, 0]}
         rotation={[0, rotationY, 0]}
-        fontSize={0.11}
-        color="#1a1a1a"
-        anchorX="center"
-        anchorY="middle"
-        maxWidth={1.4}
-        textAlign="center"
-        outlineWidth={0.008}
-        outlineColor="#f5f0e6"
-      >
-        {`${product.name}\n$${Number(product.price).toFixed(2)}`}
-      </Text>
+        width={1.5}
+        height={0.5}
+        fontSize={0.12}
+      />
     </group>
   );
 }
@@ -405,10 +421,14 @@ function ProductBox({
 export function Scene({
   products,
   entered,
+  locale,
+  storeName,
   onSelectProduct,
 }: {
   products: StoreProduct[];
   entered: boolean;
+  locale: Locale;
+  storeName: string;
   onSelectProduct: (p: StoreProduct) => void;
 }) {
   return (
@@ -426,12 +446,17 @@ export function Scene({
       <pointLight position={[0, 3.5, -3]} intensity={18} color="#fff6e0" />
       <pointLight position={[0, 3.5, -9]} intensity={18} color="#fff6e0" />
 
-      <Room />
+      <Room storeName={storeName} />
       <Door open={entered} />
       <ShelfUnit x={shelfX(1)} />
       <ShelfUnit x={shelfX(2)} />
       {products.map((p) => (
-        <ProductBox key={p.id} product={p} onSelect={onSelectProduct} />
+        <ProductBox
+          key={p.id}
+          product={p}
+          locale={locale}
+          onSelect={onSelectProduct}
+        />
       ))}
 
       <PlayerControls enabled={entered} doorOpen={entered} />

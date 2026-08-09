@@ -27,8 +27,10 @@ export default async function ProductsPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-2xl font-semibold tracking-tight">Products</h2>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">
+          Products
+        </h2>
         <Link
           href="/dashboard/products/new"
           className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium hover:bg-emerald-500"
@@ -49,11 +51,17 @@ export default async function ProductsPage() {
             <thead className="bg-neutral-900 text-left text-neutral-400">
               <tr>
                 <th className="px-4 py-3 font-medium">Product</th>
-                <th className="px-4 py-3 font-medium">Category</th>
+                <th className="hidden px-4 py-3 font-medium sm:table-cell">
+                  Category
+                </th>
                 <th className="px-4 py-3 font-medium">Price</th>
                 <th className="px-4 py-3 font-medium">Stock</th>
-                <th className="px-4 py-3 font-medium">Shelf / Slot</th>
-                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="hidden px-4 py-3 font-medium lg:table-cell">
+                  Shelf / Slot
+                </th>
+                <th className="hidden px-4 py-3 font-medium md:table-cell">
+                  Status
+                </th>
                 <th className="px-4 py-3 font-medium" />
               </tr>
             </thead>
@@ -80,17 +88,19 @@ export default async function ProductsPage() {
                       {p.name}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-neutral-400">{p.category}</td>
+                  <td className="hidden px-4 py-3 text-neutral-400 sm:table-cell">
+                    {p.category}
+                  </td>
                   <td className="px-4 py-3">{formatPrice(p.price)}</td>
                   <td className="px-4 py-3">
                     <span className={p.stock < 50 ? "text-amber-400" : ""}>
                       {p.stock}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-neutral-400">
+                  <td className="hidden px-4 py-3 text-neutral-400 lg:table-cell">
                     {p.shelf} / {p.shelfSlot}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="hidden px-4 py-3 md:table-cell">
                     {p.isActive ? (
                       <span className="rounded-full bg-emerald-950 px-2 py-0.5 text-xs text-emerald-400">
                         active

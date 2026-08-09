@@ -8,6 +8,13 @@
       "when": 1783548448036,
       "tag": "0000_old_moon_knight",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1786113505879,
+      "tag": "0001_melted_tempest",
+      "breakpoints": true
     }
   ]
 }

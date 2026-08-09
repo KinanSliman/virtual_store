@@ -14,7 +14,15 @@ import {
  * and previews it before the form is submitted. The file rides along with the
  * rest of the form to the server action as `imageFile`.
  */
-export function ImageUploadField({ currentUrl }: { currentUrl: string | null }) {
+export function ImageUploadField({
+  currentUrl,
+  label = "Product image",
+  hint = "shown in the store popup",
+}: {
+  currentUrl: string | null;
+  label?: string;
+  hint?: string;
+}) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [picked, setPicked] = useState<{ name: string; size: number } | null>(
@@ -60,8 +68,7 @@ export function ImageUploadField({ currentUrl }: { currentUrl: string | null }) 
   return (
     <div>
       <span className="mb-1 block text-sm text-neutral-400">
-        Product image{" "}
-        <span className="text-neutral-500">(shown in the store popup)</span>
+        {label} <span className="text-neutral-500">({hint})</span>
       </span>
 
       <div

@@ -10,9 +10,22 @@ import {
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
+/**
+ * Store-wide branding, edited from the dashboard. A single row, always
+ * id = 1 — see getStoreSettings() in src/lib/store-settings.ts.
+ */
+export const storeSettings = pgTable("store_settings", {
+  id: integer("id").primaryKey(),
+  name: varchar("name", { length: 120 }).notNull().default("Fresh Mart"),
+  nameAr: varchar("name_ar", { length: 120 }),
+  logoUrl: text("logo_url"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const categories = pgTable("categories", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 100 }).notNull().unique(),
+  nameAr: varchar("name_ar", { length: 100 }),
   slug: varchar("slug", { length: 100 }).notNull().unique(),
 });
 
@@ -22,7 +35,10 @@ export const products = pgTable("products", {
     .notNull()
     .references(() => categories.id, { onDelete: "restrict" }),
   name: varchar("name", { length: 200 }).notNull(),
+  // Arabic copy; the storefront falls back to the English text when empty
+  nameAr: varchar("name_ar", { length: 200 }),
   description: text("description").notNull().default(""),
+  descriptionAr: text("description_ar"),
   price: numeric("price", { precision: 10, scale: 2 }).notNull(),
   stock: integer("stock").notNull().default(0),
   imageUrl: text("image_url"),
@@ -99,6 +115,7 @@ export const productViewsRelations = relations(productViews, ({ one }) => ({
   }),
 }));
 
+export type StoreSettings = typeof storeSettings.$inferSelect;
 export type Category = typeof categories.$inferSelect;
 export type Product = typeof products.$inferSelect;
 export type NewProduct = typeof products.$inferInsert;

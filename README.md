@@ -7,12 +7,38 @@ A portfolio project: a **3D grocery store you can walk through in the browser**,
 | `/` | The 3D storefront — walk in, browse two shelves, click products, fill a cart, demo checkout (no payment) |
 | `/dashboard` | Product CRUD — create, edit, delete, stock, shelf placement, image upload |
 | `/dashboard/analytics` | Revenue per day, top sellers, most-viewed products, stock by category, low-stock alerts |
+| `/dashboard/settings` | Store name (English + Arabic) and logo |
 
 ## Controls (3D store)
+
+**Desktop**
 
 - **W A S D** or **arrow keys** — move
 - **Hold left mouse button + drag** — look around
 - **Click a product** — description popup, add to cart
+
+**Touch** — the entry screen detects a coarse pointer and shows these instead:
+
+- **On-screen thumbstick** (bottom corner) — analog movement; a half-push walks
+  at half speed
+- **Swipe anywhere** — look around
+- **Tap a product** — popup
+
+## Language
+
+Shoppers pick **English or العربية on the entry screen, before the door opens**.
+Arabic switches the document to `dir="rtl"`, so the overlays, cart, and popup
+mirror; the choice is remembered in `localStorage` and read back through
+`useSyncExternalStore`. Leaving for the dashboard resets direction to LTR.
+
+Product names, descriptions, category names, and the store name each have an
+optional Arabic column, editable in the dashboard and falling back to the
+English text when blank.
+
+3D text (the storefront sign and shelf labels) is drawn to a 2D canvas and
+mapped onto a plane rather than using drei's `<Text>` — its bundled font has no
+Arabic glyphs, whereas canvas goes through the platform text engine and shapes
+Arabic correctly. See `src/components/store3d/TextPlane.tsx`.
 
 ## Tech stack
 
@@ -64,8 +90,12 @@ from disk. Seeded illustrations are never deleted.
 
 ## How data flows
 
-- `src/db/schema.ts` is the single source of truth: `categories`, `products`,
-  `orders`, `order_items`, `product_views`.
+- `src/db/schema.ts` is the single source of truth: `store_settings`,
+  `categories`, `products`, `orders`, `order_items`, `product_views`.
+- `store_settings` is a single row (id = 1) holding the store name and logo;
+  read on the server via `src/lib/store-settings.ts`. Client components use the
+  pure helpers in `src/lib/branding.ts` instead — importing the former would
+  pull `pg` into the browser bundle.
 - The storefront page server-renders products straight from the database; every
   product click logs a row in `product_views` (feeding "most viewed" analytics),
   and the demo checkout writes an order with price snapshots and decrements stock.

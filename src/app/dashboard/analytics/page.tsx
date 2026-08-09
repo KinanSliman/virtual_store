@@ -30,7 +30,7 @@ function Card({
 }) {
   return (
     <section
-      className={`rounded-lg border border-neutral-800 bg-neutral-900 p-5 ${className}`}
+      className={`rounded-lg border border-neutral-800 bg-neutral-900 p-4 sm:p-5 ${className}`}
     >
       <h3 className="mb-4 text-sm font-medium text-neutral-400">{title}</h3>
       {children}
@@ -116,9 +116,11 @@ export default async function AnalyticsPage() {
 
   return (
     <div>
-      <h2 className="mb-6 text-2xl font-semibold tracking-tight">Analytics</h2>
+      <h2 className="mb-6 text-xl font-semibold tracking-tight sm:text-2xl">
+        Analytics
+      </h2>
 
-      <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="mb-4 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {[
           { label: "Revenue (30 days)", value: formatPrice(kpis.revenue) },
           { label: "Orders (30 days)", value: kpis.orders },
@@ -127,10 +129,12 @@ export default async function AnalyticsPage() {
         ].map((kpi) => (
           <div
             key={kpi.label}
-            className="rounded-lg border border-neutral-800 bg-neutral-900 p-5"
+            className="rounded-lg border border-neutral-800 bg-neutral-900 p-4 sm:p-5"
           >
-            <p className="text-sm text-neutral-400">{kpi.label}</p>
-            <p className="mt-1 text-3xl font-semibold">{kpi.value}</p>
+            <p className="text-xs text-neutral-400 sm:text-sm">{kpi.label}</p>
+            <p className="mt-1 text-2xl font-semibold sm:text-3xl">
+              {kpi.value}
+            </p>
           </div>
         ))}
       </div>

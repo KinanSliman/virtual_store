@@ -12,7 +12,10 @@ export type ProductFormState = {
 
 function parseProductForm(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
+  const nameAr = String(formData.get("nameAr") ?? "").trim() || null;
   const description = String(formData.get("description") ?? "").trim();
+  const descriptionAr =
+    String(formData.get("descriptionAr") ?? "").trim() || null;
   const price = String(formData.get("price") ?? "").trim();
   const stock = Number(formData.get("stock") ?? 0);
   const categoryId = Number(formData.get("categoryId"));
@@ -36,7 +39,9 @@ function parseProductForm(formData: FormData) {
   return {
     values: {
       name,
+      nameAr,
       description,
+      descriptionAr,
       price: priceNum.toFixed(2),
       stock,
       categoryId,

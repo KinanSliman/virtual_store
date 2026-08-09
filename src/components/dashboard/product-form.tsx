@@ -50,6 +50,22 @@ export function ProductForm({
       </div>
 
       <div>
+        <label className={labelClass} htmlFor="nameAr">
+          Name in Arabic{" "}
+          <span className="text-neutral-500">
+            (optional — falls back to the name above)
+          </span>
+        </label>
+        <input
+          id="nameAr"
+          name="nameAr"
+          dir="rtl"
+          defaultValue={product?.nameAr ?? ""}
+          className={inputClass}
+        />
+      </div>
+
+      <div>
         <label className={labelClass} htmlFor="description">
           Description{" "}
           <span className="text-neutral-500">
@@ -61,6 +77,21 @@ export function ProductForm({
           name="description"
           rows={3}
           defaultValue={product?.description}
+          className={inputClass}
+        />
+      </div>
+
+      <div>
+        <label className={labelClass} htmlFor="descriptionAr">
+          Description in Arabic{" "}
+          <span className="text-neutral-500">(optional)</span>
+        </label>
+        <textarea
+          id="descriptionAr"
+          name="descriptionAr"
+          dir="rtl"
+          rows={3}
+          defaultValue={product?.descriptionAr ?? ""}
           className={inputClass}
         />
       </div>
