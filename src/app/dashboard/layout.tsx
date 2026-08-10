@@ -25,7 +25,7 @@ export default async function DashboardLayout({
   const settings = await getStoreSettings();
 
   return (
-    <div className="flex min-h-screen flex-col bg-neutral-950 text-neutral-100 md:flex-row">
+    <div className="min-h-viewport flex flex-1 flex-col bg-neutral-950 text-neutral-100 md:flex-row">
       {/* top bar on phones, sidebar from md up */}
       <aside className="flex shrink-0 flex-col border-b border-neutral-800 bg-neutral-900 p-4 md:w-56 md:border-b-0 md:border-r">
         <Link href="/dashboard" className="mb-4 flex items-center gap-2 md:mb-8">

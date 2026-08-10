@@ -120,7 +120,7 @@ export function VirtualStore({
   }
 
   return (
-    <div className="relative h-dvh w-full select-none overflow-hidden">
+    <div className="h-viewport relative w-full shrink-0 select-none overflow-hidden">
       <Canvas
         shadows
         dpr={[1, 2]}
