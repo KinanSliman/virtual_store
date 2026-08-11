@@ -11,6 +11,7 @@ import { playFootstep } from "@/lib/sfx";
 import type { Locale } from "@/lib/i18n";
 import { moveInput } from "./controls-state";
 import { TextPlane } from "./TextPlane";
+import { useProductTexture } from "./useProductTexture";
 import { productName, type StoreProduct } from "./types";
 
 /*
@@ -372,6 +373,7 @@ function ProductBox({
   const [hovered, setHovered] = useState(false);
   const { position, rotationY } = slotTransform(product);
   const soldOut = product.stock <= 0;
+  const texture = useProductTexture(product.imageUrl, product.color);
 
   useEffect(() => {
     document.body.style.cursor = hovered ? "pointer" : "auto";
@@ -396,11 +398,28 @@ function ProductBox({
         onPointerOut={() => setHovered(false)}
       >
         <boxGeometry args={[0.55, 0.55, 0.55]} />
-        <meshStandardMaterial
-          color={soldOut ? "#666666" : product.color}
-          emissive={hovered ? product.color : "#000000"}
-          emissiveIntensity={hovered ? 0.35 : 0}
-        />
+        {/* BoxGeometry material order: +x, -x, +y, -y, +z, -z. The artwork
+            goes on the four upright faces like a real package; the top and
+            bottom stay plain. */}
+        {[0, 1, 2, 3, 4, 5].map((face) => {
+          const upright = face !== 2 && face !== 3;
+          const showImage = upright && texture !== null && !soldOut;
+          return (
+            <meshStandardMaterial
+              // remount when the image arrives: switching a material between
+              // mapped and unmapped needs a shader rebuild, and recreating it
+              // is more reliable than mutating map + needsUpdate in place
+              key={`${face}-${showImage ? "image" : "plain"}`}
+              attach={`material-${face}`}
+              map={showImage ? texture : null}
+              // white lets the artwork through unmodified; the map is tinted
+              // by this colour otherwise
+              color={showImage ? "#ffffff" : soldOut ? "#666666" : product.color}
+              emissive={hovered ? product.color : "#000000"}
+              emissiveIntensity={hovered ? 0.35 : 0}
+            />
+          );
+        })}
       </mesh>
       <TextPlane
         text={`${productName(product, locale)}\n$${Number(product.price).toFixed(2)}`}

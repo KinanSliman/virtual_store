@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
   <rect width="200" height="200" rx="24" fill="#f7efe3"/>
   <ellipse cx="100" cy="118" rx="62" ry="42" fill="#c98a4b"/>
   <ellipse cx="100" cy="110" rx="58" ry="36" fill="#dda05f"/>

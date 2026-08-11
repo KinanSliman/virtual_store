@@ -83,6 +83,12 @@ table. There are two sources:
   `/api/images/[filename]`, which only accepts that exact name shape, so a
   request can't walk out of the upload directory.
 
+The image appears in two places in the store: as the texture on the product's
+box on the shelf (composited over the product colour onto a square canvas, so
+transparent PNGs get an opaque backdrop and non-square artwork is letterboxed
+rather than stretched — see `useProductTexture.ts`) and full size in the popup.
+A product with no image falls back to a plain coloured box.
+
 PNG, JPEG, WebP, GIF, and SVG are accepted, up to 4MB (`serverActions.bodySizeLimit`
 in `next.config.ts` allows 5MB of request body to leave room for form overhead).
 Replacing or removing an image — or deleting the product — also deletes the file
