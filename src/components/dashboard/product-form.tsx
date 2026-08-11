@@ -24,12 +24,10 @@ export function ProductForm({
 }) {
   const [state, formAction, pending] = useActionState(action, {});
 
+  // No encType/method: React sets multipart itself for a function action, and
+  // specifying them logs a warning that they will be overridden.
   return (
-    <form
-      action={formAction}
-      encType="multipart/form-data"
-      className="max-w-xl space-y-4"
-    >
+    <form action={formAction} className="max-w-xl space-y-4">
       {state.error && (
         <p className="rounded-md border border-red-900 bg-red-950 px-3 py-2 text-sm text-red-400">
           {state.error}
