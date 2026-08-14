@@ -25,6 +25,10 @@
 *.pem
 .claude/settings.local.json
 
+# uploaded images (superseded by database storage) and generated dumps
+/uploads
+neon-setup.sql
+
 # product images uploaded through the dashboard
 /uploads
 

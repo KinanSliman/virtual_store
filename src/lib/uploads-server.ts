@@ -1,14 +1,15 @@
 /**
- * Filesystem side of product image uploads. Server-only — do not import
- * from a client component.
+ * Storage side of product image uploads. Server-only — do not import from a
+ * client component.
  *
- * Files live in an `uploads/` directory outside `public/` so that writing
- * one doesn't trip the dev server's file watcher, and so user uploads never
- * land in the repo. They're served by src/app/api/images/[filename]/route.ts.
+ * Images are rows in the `images` table, not files on disk: a serverless
+ * deployment has a read-only filesystem and no storage shared between
+ * requests, so anything written would fail or disappear. They're served by
+ * src/app/api/images/[filename]/route.ts.
  */
 import { randomUUID } from "node:crypto";
-import { mkdir, unlink, writeFile } from "node:fs/promises";
-import path from "node:path";
+import { eq } from "drizzle-orm";
+import { db, images } from "@/db";
 import {
   ACCEPTED_IMAGE_TYPES,
   MAX_UPLOAD_BYTES,
@@ -18,15 +19,12 @@ import {
   type AcceptedImageType,
 } from "./uploads";
 
-export const UPLOAD_DIR = path.join(process.cwd(), "uploads");
-
 /**
  * Names we generate, and the only shape the serving route will accept:
- * a UUID plus a known extension. Anything else — including any path
- * separator or `..` — is rejected before touching the filesystem.
+ * a UUID plus a known extension.
  */
 export const UPLOAD_FILENAME_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(png|jpg|webp|gif|svg)$/;
+  /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.(png|jpg|webp|gif|svg)$/;
 
 export const CONTENT_TYPE_BY_EXTENSION: Record<string, string> = {
   png: "image/png",
@@ -38,7 +36,14 @@ export const CONTENT_TYPE_BY_EXTENSION: Record<string, string> = {
 
 export type SaveResult = { url: string } | { error: string };
 
-/** Writes an uploaded image to disk and returns the URL to serve it from. */
+/** Returns the image id encoded in an /api/images/ URL, if it is one. */
+export function imageIdFromUrl(url: string | null): string | null {
+  if (!isUploadedImage(url)) return null;
+  const match = UPLOAD_FILENAME_PATTERN.exec(url!.slice(UPLOAD_URL_PREFIX.length));
+  return match ? match[1] : null;
+}
+
+/** Stores an uploaded image and returns the URL to serve it from. */
 export async function saveUploadedImage(file: File): Promise<SaveResult> {
   const extension = ACCEPTED_IMAGE_TYPES[file.type as AcceptedImageType];
   if (!extension) {
@@ -55,26 +60,27 @@ export async function saveUploadedImage(file: File): Promise<SaveResult> {
     return { error: "That file is empty." };
   }
 
-  // The stored name comes from randomUUID, never from the upload's own
-  // filename, so there's nothing user-controlled in the path.
-  const filename = `${randomUUID()}.${extension}`;
-  await mkdir(UPLOAD_DIR, { recursive: true });
-  await writeFile(
-    path.join(UPLOAD_DIR, filename),
-    new Uint8Array(await file.arrayBuffer()),
-  );
+  // The id comes from randomUUID, never from the upload's own filename, so
+  // there's nothing user-controlled in the URL.
+  const id = randomUUID();
+  const data = Buffer.from(await file.arrayBuffer());
+  await db.insert(images).values({
+    id,
+    extension,
+    contentType: file.type,
+    data,
+    byteSize: data.byteLength,
+  });
 
-  return { url: `${UPLOAD_URL_PREFIX}${filename}` };
+  return { url: `${UPLOAD_URL_PREFIX}${id}.${extension}` };
 }
 
 /**
- * Deletes a previously uploaded file. Silently ignores URLs that aren't
- * ours (the seeded /products/*.svg illustrations stay put) and files that
- * are already gone.
+ * Deletes a previously uploaded image. Silently ignores URLs that aren't ours
+ * (the seeded /products/*.svg illustrations stay put) and rows already gone.
  */
 export async function deleteUploadedImage(url: string | null): Promise<void> {
-  if (!isUploadedImage(url)) return;
-  const filename = url!.slice(UPLOAD_URL_PREFIX.length);
-  if (!UPLOAD_FILENAME_PATTERN.test(filename)) return;
-  await unlink(path.join(UPLOAD_DIR, filename)).catch(() => {});
+  const id = imageIdFromUrl(url);
+  if (!id) return;
+  await db.delete(images).where(eq(images.id, id));
 }

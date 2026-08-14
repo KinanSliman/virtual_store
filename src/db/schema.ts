@@ -1,14 +1,40 @@
 import {
   boolean,
+  customType,
   integer,
   numeric,
   pgTable,
   serial,
   text,
   timestamp,
+  uuid,
   varchar,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+
+const bytea = customType<{ data: Buffer; driverData: Buffer }>({
+  dataType() {
+    return "bytea";
+  },
+});
+
+/**
+ * Images uploaded through the dashboard, stored as rows rather than files.
+ *
+ * Serverless hosts (Vercel among them) give each request a read-only
+ * filesystem apart from a scratch /tmp that isn't shared between
+ * invocations, so a written file would fail or vanish. Keeping the bytes in
+ * Postgres means the only backing service is the one the app already needs.
+ * Served by src/app/api/images/[filename]/route.ts.
+ */
+export const images = pgTable("images", {
+  id: uuid("id").primaryKey(),
+  extension: varchar("extension", { length: 8 }).notNull(),
+  contentType: varchar("content_type", { length: 60 }).notNull(),
+  data: bytea("data").notNull(),
+  byteSize: integer("byte_size").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
 
 /**
  * Store-wide branding, edited from the dashboard. A single row, always

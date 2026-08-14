@@ -1,8 +1,7 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
+import { eq } from "drizzle-orm";
+import { db, images } from "@/db";
 import {
   CONTENT_TYPE_BY_EXTENSION,
-  UPLOAD_DIR,
   UPLOAD_FILENAME_PATTERN,
 } from "@/lib/uploads-server";
 
@@ -12,22 +11,26 @@ export async function GET(
   { params }: { params: Promise<{ filename: string }> },
 ) {
   const { filename } = await params;
-  if (!UPLOAD_FILENAME_PATTERN.test(filename)) {
+  const match = UPLOAD_FILENAME_PATTERN.exec(filename);
+  if (!match) {
+    return new Response("Not found", { status: 404 });
+  }
+  const [, id, extension] = match;
+
+  const [row] = await db
+    .select({ data: images.data, contentType: images.contentType })
+    .from(images)
+    .where(eq(images.id, id));
+
+  if (!row) {
     return new Response("Not found", { status: 404 });
   }
 
-  let data: Buffer;
-  try {
-    data = await readFile(path.join(UPLOAD_DIR, filename));
-  } catch {
-    return new Response("Not found", { status: 404 });
-  }
-
-  const extension = filename.split(".").pop()!;
-  return new Response(new Uint8Array(data), {
+  return new Response(new Uint8Array(row.data), {
     headers: {
-      "Content-Type": CONTENT_TYPE_BY_EXTENSION[extension],
-      // filenames are UUIDs, so a stored image never changes under its URL
+      "Content-Type":
+        row.contentType || CONTENT_TYPE_BY_EXTENSION[extension],
+      // ids are UUIDs, so a stored image never changes under its URL
       "Cache-Control": "public, max-age=31536000, immutable",
       // an uploaded SVG can carry script; neutralize it if opened directly
       "Content-Security-Policy":

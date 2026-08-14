@@ -94,10 +94,48 @@ in `next.config.ts` allows 5MB of request body to leave room for form overhead).
 Replacing or removing an image — or deleting the product — also deletes the file
 from disk. Seeded illustrations are never deleted.
 
+## Deploying (Vercel + Neon)
+
+The app talks to Postgres on every request, so a deployment needs a database it
+can actually reach — a `localhost` URL in the hosting provider's environment
+variables is the usual cause of a build that succeeds and then 500s.
+
+1. **Environment variables** in the Vercel project:
+   - `DATABASE_URL` — Neon's **pooled** connection string (the `-pooler` host).
+     Each serverless invocation opens its own connection, and the pooler is
+     what keeps that from exhausting the database's connection slots.
+   - `DATABASE_URL_UNPOOLED` — the direct host, used for migrations. DDL isn't
+     reliable through a transaction-mode pooler.
+
+2. **Create the schema** on the hosted database, either way:
+
+   ```bash
+   DATABASE_URL="$DATABASE_URL_UNPOOLED" pnpm db:migrate
+   ```
+
+   If your network blocks outbound port 5432 (Neon offers no other port), that
+   command will hang. Generate a single script from a working local database
+   and paste it into Neon's SQL Editor instead:
+
+   ```bash
+   node scripts/export-for-neon.mjs "postgres://user:pass@localhost:5432/virtual_store"
+   ```
+
+   That writes `neon-setup.sql` — schema plus every row, including uploaded
+   images — which the browser-based editor runs without needing a direct
+   connection.
+
+3. Keep the **local** Postgres URL in your `.env` for development. Pointing
+   `.env` at the hosted database only works if you can reach it directly.
+
+Uploaded images are rows in the database rather than files on disk, so they
+survive on hosts with a read-only or ephemeral filesystem. `scripts/import-uploads.mjs`
+migrates any images left over from the old `uploads/` directory.
+
 ## How data flows
 
 - `src/db/schema.ts` is the single source of truth: `store_settings`,
-  `categories`, `products`, `orders`, `order_items`, `product_views`.
+  `categories`, `products`, `orders`, `order_items`, `product_views`, `images`.
 - `store_settings` is a single row (id = 1) holding the store name and logo;
   read on the server via `src/lib/store-settings.ts`. Client components use the
   pure helpers in `src/lib/branding.ts` instead — importing the former would
