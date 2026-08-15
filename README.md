@@ -1,158 +1,276 @@
-# 🛒 Fresh Mart — Virtual Grocery Store
+# Fresh Mart — a virtual grocery store
 
-A portfolio project: a **3D grocery store you can walk through in the browser**, backed by a PostgreSQL database and a management dashboard.
+A grocery store you walk through in the browser. Push open the door, wander the
+aisle, pick products off the shelves, and check out — while a separate admin
+dashboard manages the catalogue and reports on what shoppers actually did.
 
-| Route | What it is |
-|---|---|
-| `/` | The 3D storefront — walk in, browse two shelves, click products, fill a cart, demo checkout (no payment) |
-| `/dashboard` | Product CRUD — create, edit, delete, stock, shelf placement, image upload |
-| `/dashboard/analytics` | Revenue per day, top sellers, most-viewed products, stock by category, low-stock alerts |
-| `/dashboard/settings` | Store name (English + Arabic) and logo |
+Built with Next.js 16, TypeScript, PostgreSQL, and React Three Fiber. The
+storefront is bilingual (English / العربية) and works on desktop and touch.
 
-## Controls (3D store)
+```
+┌──────────────────────────┐        ┌──────────────────────────┐
+│  /                       │        │  /dashboard              │
+│  3D storefront           │◄──────►│  catalogue + analytics   │
+│  shoppers                │  same  │  the shopkeeper          │
+└──────────────────────────┘   DB   └──────────────────────────┘
+```
+
+---
+
+## Contents
+
+- [What it does](#what-it-does)
+- [Controls](#controls)
+- [Tech stack](#tech-stack)
+- [Running it locally](#running-it-locally)
+- [Project structure](#project-structure)
+- [How it works](#how-it-works)
+- [Deployment](#deployment)
+- [Scripts](#scripts)
+
+---
+
+## What it does
+
+### The storefront (`/`)
+
+The shopper picks a language, the door swings open, and they're inside a room
+with two stocked shelves. Every box on those shelves is a database row: its
+price, stock, shelf position, colour and artwork all come from the catalogue.
+Clicking one opens its details and adds it to the cart. Checkout is a demo — it
+records a real order and decrements stock, but takes no payment.
+
+### The dashboard (`/dashboard`)
+
+| Route | Purpose |
+| --- | --- |
+| `/dashboard` | Product CRUD — name, description, price, stock, category, shelf placement, colour, image |
+| `/dashboard/analytics` | Revenue over time, top sellers, most-viewed products, stock by category, low-stock alerts |
+| `/dashboard/settings` | Store name (English and Arabic) and logo |
+
+Anything changed here shows up in the 3D store on the next load — including the
+name on the sign above the door.
+
+### Bilingual, right-to-left aware
+
+Language is chosen on the entry screen, **before** the door opens. Arabic
+switches the document to `dir="rtl"`, so overlays, the cart, and the product
+popup all mirror — the on-screen movement stick moves to the other side too. The
+choice persists across visits.
+
+Products, categories, and the store name each carry an optional Arabic field,
+editable in the dashboard and falling back to English when blank.
+
+---
+
+## Controls
 
 **Desktop**
 
-- **W A S D** or **arrow keys** — move
-- **Hold left mouse button + drag** — look around
-- **Click a product** — description popup, add to cart
+| Input | Action |
+| --- | --- |
+| `W` `A` `S` `D` or arrow keys | Move |
+| Hold left mouse button + drag | Look around |
+| Click a product | Open details, add to cart |
 
-**Touch** — the entry screen detects a coarse pointer and shows these instead:
+**Touch** — detected automatically, and the instructions change to match:
 
-- **On-screen thumbstick** (bottom corner) — analog movement; a half-push walks
-  at half speed
-- **Swipe anywhere** — look around
-- **Tap a product** — popup
+| Input | Action |
+| --- | --- |
+| On-screen thumbstick | Move (analog — a half-push walks at half speed) |
+| Swipe | Look around |
+| Tap a product | Open details |
 
-## Language
-
-Shoppers pick **English or العربية on the entry screen, before the door opens**.
-Arabic switches the document to `dir="rtl"`, so the overlays, cart, and popup
-mirror; the choice is remembered in `localStorage` and read back through
-`useSyncExternalStore`. Leaving for the dashboard resets direction to LTR.
-
-Product names, descriptions, category names, and the store name each have an
-optional Arabic column, editable in the dashboard and falling back to the
-English text when blank.
-
-3D text (the storefront sign and shelf labels) is drawn to a 2D canvas and
-mapped onto a plane rather than using drei's `<Text>` — its bundled font has no
-Arabic glyphs, whereas canvas goes through the platform text engine and shapes
-Arabic correctly. See `src/components/store3d/TextPlane.tsx`.
+---
 
 ## Tech stack
 
-- **Next.js 16** (App Router, React Server Components, Server Actions, React Compiler)
-- **TypeScript** everywhere
-- **PostgreSQL + Drizzle ORM** (`drizzle-kit` migrations)
-- **React Three Fiber + drei** for the 3D scene (procedural geometry, no model files)
-- **Tailwind CSS**, **Recharts**, **Zustand**
+| Layer | Choice |
+| --- | --- |
+| Framework | Next.js 16 — App Router, Server Components, Server Actions, React Compiler |
+| Language | TypeScript, strict |
+| Database | PostgreSQL with Drizzle ORM and `drizzle-kit` migrations |
+| 3D | React Three Fiber + drei, entirely procedural geometry (no model files) |
+| Styling | Tailwind CSS v4 |
+| Charts | Recharts |
+| Client state | Zustand (cart) |
+| Audio | Web Audio API — synthesised, no audio files |
 
-## Getting started
+---
 
-1. Have PostgreSQL running locally and copy `.env.example` to `.env`, adjusting
-   `DATABASE_URL` to your credentials.
+## Running it locally
 
-2. Install and set up the database:
+**Prerequisites:** Node.js 20.9+, pnpm, and a PostgreSQL instance.
 
-   ```bash
-   pnpm install
-   node --env-file=.env create-db.mjs   # creates the database if missing
-   pnpm db:migrate                      # applies the schema
-   pnpm db:seed                         # 12 products + 30 days of demo analytics data
-   ```
+```bash
+git clone https://github.com/KinanSliman/virtual_store.git
+cd virtual_store
+pnpm install
+cp .env.example .env          # then set DATABASE_URL
+```
 
-3. Run it:
+Create and populate the database:
 
-   ```bash
-   pnpm dev
-   ```
+```bash
+node --env-file=.env create-db.mjs   # creates the database if it doesn't exist
+pnpm db:migrate                      # applies the schema
+pnpm db:seed                         # 12 products + 30 days of demo activity
+```
 
-   Open http://localhost:3000 for the store, http://localhost:3000/dashboard to manage it.
+Start it:
 
-## Product images
+```bash
+pnpm dev
+```
 
-Each product can carry an image, shown in the store popup and in the dashboard
-table. There are two sources:
+The store is at [localhost:3000](http://localhost:3000), the dashboard at
+[localhost:3000/dashboard](http://localhost:3000/dashboard).
 
-- The **seeded illustrations** in `public/products/*.svg`, served statically.
-- **Your own uploads** — the product form takes a file from your computer by
-  click or drag-and-drop, previews it before saving, and stores it in the
-  gitignored `uploads/` directory (outside `public/`, so writing one doesn't
-  restart the dev server). Uploaded files get a UUID filename and are served by
-  `/api/images/[filename]`, which only accepts that exact name shape, so a
-  request can't walk out of the upload directory.
+---
 
-The image appears in two places in the store: as the texture on the product's
-box on the shelf (composited over the product colour onto a square canvas, so
-transparent PNGs get an opaque backdrop and non-square artwork is letterboxed
-rather than stretched — see `useProductTexture.ts`) and full size in the popup.
-A product with no image falls back to a plain coloured box.
+## Project structure
 
-PNG, JPEG, WebP, GIF, and SVG are accepted, up to 4MB (`serverActions.bodySizeLimit`
-in `next.config.ts` allows 5MB of request body to leave room for form overhead).
-Replacing or removing an image — or deleting the product — also deletes the file
-from disk. Seeded illustrations are never deleted.
+```
+src/
+├── app/
+│   ├── page.tsx                  # 3D storefront (server-rendered catalogue)
+│   ├── dashboard/                # catalogue, analytics, settings + server actions
+│   └── api/
+│       ├── views/                # logs a product click
+│       ├── orders/               # demo checkout
+│       └── images/[filename]/    # serves uploaded images
+├── components/
+│   ├── store3d/                  # scene, controls, labels, textures, HUD
+│   └── dashboard/                # forms, tables, charts
+├── db/
+│   ├── schema.ts                 # single source of truth
+│   └── seed.ts
+└── lib/                          # i18n, cart, branding, uploads, formatting
+```
 
-## Deploying (Vercel + Neon)
+---
 
-The app talks to Postgres on every request, so a deployment needs a database it
-can actually reach — a `localhost` URL in the hosting provider's environment
-variables is the usual cause of a build that succeeds and then 500s.
+## How it works
 
-**Two drivers, picked by host** (`src/db/index.ts`). A `*.neon.tech` URL goes
-through `@neondatabase/serverless`, which carries the Postgres protocol over a
-WebSocket on port **443**; anything else uses `node-postgres` on 5432. This
-matters beyond serverless: plenty of networks — corporate filtering, VPNs, some
-ISPs — reset raw 5432 connections, which surfaces as `read ECONNRESET` the
-instant a query runs, from a machine with otherwise fine internet. Port 443
-gets through, so the same code works locally against Neon.
+A few decisions worth explaining, since they're the parts that weren't obvious.
 
-Neon's connection strings also carry `channel_binding=require`, which
+### Arabic text inside a 3D scene
+
+drei's `<Text>` renders with a bundled Latin font, so Arabic came out as empty
+boxes. Shelf labels and the storefront sign are instead drawn to a 2D canvas and
+mapped onto a plane
+([`TextPlane.tsx`](src/components/store3d/TextPlane.tsx)). Canvas goes through
+the platform's text engine, which shapes Arabic correctly — joined letterforms,
+right-to-left ordering — and falls back per-glyph across a font stack.
+
+### Product images
+
+Each product's artwork is composited over its colour onto a square canvas and
+used as the texture on the four upright faces of its box, like a real package
+([`useProductTexture.ts`](src/components/store3d/useProductTexture.ts)). Going
+through a canvas means transparent PNGs get an opaque backdrop instead of
+rendering black, and non-square photos are letterboxed rather than stretched. A
+product with no image falls back to a plain coloured box.
+
+Images upload from the dashboard by click or drag-and-drop (PNG, JPEG, WebP,
+GIF, SVG, up to 4 MB) and are stored **as rows in the database**, not as files.
+Serverless hosts give each request a read-only filesystem and no storage shared
+between invocations, so a written file would fail or vanish. Filenames are
+UUIDs generated server-side, so nothing user-controlled reaches a path, and the
+serving route sends a restrictive CSP so an uploaded SVG can't execute script.
+
+### Two database drivers, chosen by host
+
+A `*.neon.tech` URL connects through `@neondatabase/serverless`, which carries
+the Postgres protocol over a WebSocket on port **443**. Anything else uses
+`node-postgres` on 5432.
+
+This isn't only a serverless optimisation. Many networks — corporate filtering,
+VPNs, some ISPs — reset raw 5432 connections, which surfaces as `read
+ECONNRESET` the instant a query runs, on a machine whose internet is otherwise
+fine. Port 443 goes through, so the same code works locally against a hosted
+database. Neon's connection strings also carry `channel_binding=require`, which
 node-postgres can't satisfy; the parameter is stripped before connecting, with
 TLS still enforced by `sslmode`.
 
-1. **Environment variables** in the Vercel project:
-   - `DATABASE_URL` — Neon's **pooled** connection string (the `-pooler` host).
-   - `DATABASE_URL_UNPOOLED` — the direct host, for migrations run with
-     `drizzle-kit`; DDL isn't reliable through a transaction-mode pooler.
+### Sound
 
-2. **Create the schema** on the hosted database:
+Footsteps and the door creak are synthesised at runtime with the Web Audio API
+([`sfx.ts`](src/lib/sfx.ts)) — filtered noise bursts and a vibrato sweep — so
+the repo ships no audio files. Footsteps fire once per stride actually walked,
+so they stop when you bump into a shelf.
+
+### Data flow
+
+- [`schema.ts`](src/db/schema.ts) is the single source of truth: `store_settings`,
+  `categories`, `products`, `orders`, `order_items`, `product_views`, `images`.
+- The storefront server-renders products straight from the database. Each
+  product click logs a `product_views` row, feeding the "most viewed" chart.
+- Checkout writes an order with unit-price snapshots and decrements stock, in a
+  transaction. Prices come from the database, never from the client.
+- Dashboard mutations use Server Actions; the storefront uses small route
+  handlers.
+- `store_settings` is a single row. Server code reads it through
+  `lib/store-settings.ts`; client components use the pure helpers in
+  `lib/branding.ts` instead, because importing the former would pull the
+  Postgres driver into the browser bundle.
+
+---
+
+## Deployment
+
+Deployed on Vercel with a Neon database. The app queries Postgres on every
+request, so the deployment needs a database it can actually reach — a
+`localhost` URL in the host's environment variables produces a build that
+succeeds and then returns a server error on every page.
+
+1. Set environment variables in the Vercel project:
+   - `DATABASE_URL` — Neon's **pooled** connection string (the `-pooler` host).
+   - `DATABASE_URL_UNPOOLED` — the direct host, for migrations. DDL isn't
+     reliable through a transaction-mode pooler.
+
+2. Create the schema on the hosted database:
 
    ```bash
    DATABASE_URL="$DATABASE_URL_UNPOOLED" pnpm db:migrate
    ```
 
-   `drizzle-kit` connects on 5432, so on a network that blocks it, build one
-   SQL script from a working local database and apply it over the WebSocket
-   driver instead:
+   `drizzle-kit` connects on 5432. On a network that blocks it, export one SQL
+   script from a working local database and apply it over the WebSocket driver
+   instead — or paste it into Neon's browser SQL Editor:
 
    ```bash
    node scripts/export-for-neon.mjs "postgres://user:pass@localhost:5432/virtual_store"
    node --env-file=.env scripts/apply-sql.mjs neon-setup.sql
    ```
 
-   `neon-setup.sql` holds the schema plus every row, uploaded images included.
-   It can equally be pasted into Neon's browser SQL Editor.
+3. Confirm what's actually there:
 
-3. `node --env-file=.env scripts/db-status.mjs` lists the tables and row counts
-   of whatever `DATABASE_URL` points at — the quickest way to tell an empty
-   database from an unreachable one.
+   ```bash
+   node --env-file=.env scripts/db-status.mjs
+   ```
 
-Uploaded images are rows in the database rather than files on disk, so they
-survive on hosts with a read-only or ephemeral filesystem. `scripts/import-uploads.mjs`
-migrates any images left over from the old `uploads/` directory.
+---
 
-## How data flows
+## Scripts
 
-- `src/db/schema.ts` is the single source of truth: `store_settings`,
-  `categories`, `products`, `orders`, `order_items`, `product_views`, `images`.
-- `store_settings` is a single row (id = 1) holding the store name and logo;
-  read on the server via `src/lib/store-settings.ts`. Client components use the
-  pure helpers in `src/lib/branding.ts` instead — importing the former would
-  pull `pg` into the browser bundle.
-- The storefront page server-renders products straight from the database; every
-  product click logs a row in `product_views` (feeding "most viewed" analytics),
-  and the demo checkout writes an order with price snapshots and decrements stock.
-- Dashboard mutations use Server Actions; the storefront uses two small route
-  handlers (`/api/views`, `/api/orders`).
+| Command | Does |
+| --- | --- |
+| `pnpm dev` | Development server |
+| `pnpm build` / `pnpm start` | Production build and serve |
+| `pnpm lint` | ESLint |
+| `pnpm db:generate` | Generate a migration from schema changes |
+| `pnpm db:migrate` | Apply migrations |
+| `pnpm db:seed` | Reset to demo catalogue and 30 days of activity |
+| `scripts/db-status.mjs` | List tables and row counts for the current `DATABASE_URL` |
+| `scripts/apply-sql.mjs` | Run a `.sql` file through the host-appropriate driver |
+| `scripts/export-for-neon.mjs` | Dump schema + data to a single SQL script |
+| `scripts/import-uploads.mjs` | Migrate legacy `uploads/` files into the database |
+
+---
+
+## Notes
+
+No payment processing is involved anywhere — checkout records an order and
+adjusts stock, nothing more. This is a portfolio project built to demonstrate
+full-stack and 3D web work.
