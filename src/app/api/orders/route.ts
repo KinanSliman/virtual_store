@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { eq, inArray, sql } from "drizzle-orm";
 import { db, orderItems, orders, products } from "@/db";
+import { clientKey, rateLimit } from "@/lib/rate-limit";
 
 type CheckoutItem = { productId: number; quantity: number };
+
+/** Checkout writes an order and moves stock, so it's tighter than views. */
+const ORDER_LIMIT = 10;
+const ORDER_WINDOW_MS = 60_000;
 
 /**
  * Demo checkout — no payment. Prices are taken from the database (never
@@ -10,6 +15,21 @@ type CheckoutItem = { productId: number; quantity: number };
  * decremented.
  */
 export async function POST(request: Request) {
+  const limit = rateLimit(
+    clientKey(request, "orders"),
+    ORDER_LIMIT,
+    ORDER_WINDOW_MS,
+  );
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limit.retryAfterSeconds) },
+      },
+    );
+  }
+
   const body = await request.json().catch(() => null);
   const rawItems: unknown = body?.items;
   if (!Array.isArray(rawItems) || rawItems.length === 0) {

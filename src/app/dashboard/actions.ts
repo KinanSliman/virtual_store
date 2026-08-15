@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db, products } from "@/db";
+import { requireDashboardSession } from "@/lib/auth-session";
 import { deleteUploadedImage, saveUploadedImage } from "@/lib/uploads-server";
 
 export type ProductFormState = {
@@ -83,6 +84,7 @@ export async function createProduct(
   _prev: ProductFormState,
   formData: FormData,
 ): Promise<ProductFormState> {
+  await requireDashboardSession();
   const parsed = parseProductForm(formData);
   if ("error" in parsed) return { error: parsed.error };
 
@@ -99,6 +101,7 @@ export async function updateProduct(
   _prev: ProductFormState,
   formData: FormData,
 ): Promise<ProductFormState> {
+  await requireDashboardSession();
   const parsed = parseProductForm(formData);
   if ("error" in parsed) return { error: parsed.error };
 
@@ -120,6 +123,7 @@ export async function updateProduct(
 }
 
 export async function deleteProduct(id: number): Promise<void> {
+  await requireDashboardSession();
   const [existing] = await db
     .select({ imageUrl: products.imageUrl })
     .from(products)

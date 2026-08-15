@@ -1,5 +1,7 @@
 # Fresh Mart — a virtual grocery store
 
+[![CI](https://github.com/KinanSliman/virtual_store/actions/workflows/ci.yml/badge.svg)](https://github.com/KinanSliman/virtual_store/actions/workflows/ci.yml)
+
 A grocery store you walk through in the browser. Push open the door, wander the
 aisle, pick products off the shelves, and check out — while a separate admin
 dashboard manages the catalogue and reports on what shoppers actually did.
@@ -25,6 +27,8 @@ storefront is bilingual (English / العربية) and works on desktop and touc
 - [Running it locally](#running-it-locally)
 - [Project structure](#project-structure)
 - [How it works](#how-it-works)
+- [Security](#security)
+- [Testing and CI](#testing-and-ci)
 - [Deployment](#deployment)
 - [Scripts](#scripts)
 
@@ -47,6 +51,8 @@ records a real order and decrements stock, but takes no payment.
 | `/dashboard` | Product CRUD — name, description, price, stock, category, shelf placement, colour, image |
 | `/dashboard/analytics` | Revenue over time, top sellers, most-viewed products, stock by category, low-stock alerts |
 | `/dashboard/settings` | Store name (English and Arabic) and logo |
+
+The dashboard is password-protected — see [Security](#security).
 
 Anything changed here shows up in the 3D store on the next load — including the
 name on the sign above the door.
@@ -217,6 +223,54 @@ so they stop when you bump into a shelf.
 
 ---
 
+## Security
+
+The storefront is public. Everything under `/dashboard` changes the catalogue,
+so it sits behind a password set in `DASHBOARD_PASSWORD`.
+
+- **Session** — a signed cookie rather than server-side state. There's one
+  account, so there's nothing to look up, and a stateless token keeps a
+  serverless deployment free of a session store. The signing key is derived
+  from the password, so changing it invalidates every existing session. The
+  cookie is `httpOnly`, `sameSite=lax`, and `secure` in production.
+- **Two layers** — `proxy.ts` redirects unauthenticated page requests, and each
+  mutating Server Action re-checks the session. Next's own documentation calls
+  proxy an *optimistic* check, since it runs before the request reaches the
+  action; the action-level guard is the one that actually authorises.
+- **Fails closed** — with no password configured, the dashboard stays open on
+  localhost for convenience but locks itself in production, so a deployment
+  can't accidentally publish an open admin panel.
+- **Password comparison** is constant-time, and the login form only accepts
+  same-site `/dashboard` redirect targets, so `?next=` can't be used as an
+  open redirect.
+- **Rate limiting** on the public write routes — 60 views/min and 10
+  checkouts/min per client — so the analytics can't be poisoned in a loop.
+  Counters are per-process; a shared store would be the next step if this
+  needed to be exact.
+- **Uploads** get server-generated UUID names, so nothing user-controlled
+  reaches a path, and are served with a restrictive CSP so an uploaded SVG
+  can't execute script.
+
+---
+
+## Testing and CI
+
+```bash
+pnpm test        # Vitest
+pnpm typecheck   # tsc --noEmit
+pnpm lint        # ESLint
+```
+
+58 tests cover the logic worth pinning down: session token signing, tampering
+and expiry; the rate limiter's windows and per-key isolation; cart arithmetic;
+upload validation; and the Arabic-to-English fallbacks that decide what a
+shopper actually reads.
+
+[GitHub Actions](.github/workflows/ci.yml) runs lint, typecheck, tests, and a
+production build on every push and pull request.
+
+---
+
 ## Deployment
 
 Deployed on Vercel with a Neon database. The app queries Postgres on every
@@ -228,6 +282,7 @@ succeeds and then returns a server error on every page.
    - `DATABASE_URL` — Neon's **pooled** connection string (the `-pooler` host).
    - `DATABASE_URL_UNPOOLED` — the direct host, for migrations. DDL isn't
      reliable through a transaction-mode pooler.
+   - `DASHBOARD_PASSWORD` — required, or the dashboard locks itself.
 
 2. Create the schema on the hosted database:
 
@@ -259,6 +314,8 @@ succeeds and then returns a server error on every page.
 | `pnpm dev` | Development server |
 | `pnpm build` / `pnpm start` | Production build and serve |
 | `pnpm lint` | ESLint |
+| `pnpm typecheck` | TypeScript, no emit |
+| `pnpm test` / `pnpm test:watch` | Vitest |
 | `pnpm db:generate` | Generate a migration from schema changes |
 | `pnpm db:migrate` | Apply migrations |
 | `pnpm db:seed` | Reset to demo catalogue and 30 days of activity |

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { getStoreSettings } from "@/lib/store-settings";
+import { isAuthConfigured } from "@/lib/auth";
+import { signOut } from "@/app/login/actions";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { name } = await getStoreSettings();
@@ -61,6 +63,16 @@ export default async function DashboardLayout({
           >
             ↗ Open 3D store
           </Link>
+          {isAuthConfigured() && (
+            <form action={signOut} className="shrink-0 md:mt-auto">
+              <button
+                type="submit"
+                className="w-full rounded-md px-3 py-2 text-start text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200"
+              >
+                Sign out
+              </button>
+            </form>
+          )}
         </nav>
       </aside>
       <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>

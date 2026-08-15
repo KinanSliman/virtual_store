@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { db, storeSettings } from "@/db";
 import { deleteUploadedImage, saveUploadedImage } from "@/lib/uploads-server";
 import { getStoreSettings, SETTINGS_ROW_ID } from "@/lib/store-settings";
+import { requireDashboardSession } from "@/lib/auth-session";
 
 export type SettingsFormState = {
   error?: string;
@@ -14,6 +15,7 @@ export async function updateStoreSettings(
   _prev: SettingsFormState,
   formData: FormData,
 ): Promise<SettingsFormState> {
+  await requireDashboardSession();
   const name = String(formData.get("name") ?? "").trim();
   const nameAr = String(formData.get("nameAr") ?? "").trim() || null;
   if (!name) return { error: "Store name is required." };
