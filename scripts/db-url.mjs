@@ -1,11 +1,13 @@
 /**
- * Picks a connection string and makes it usable by node-postgres.
- *
- * Neon's copy-paste URLs carry `channel_binding=require`. node-postgres does
- * not implement SCRAM channel binding, so the handshake stalls rather than
- * failing cleanly; dropping the parameter (TLS is still required via
- * `sslmode`) makes the connection work.
+ * Shared connection helper for the scripts, mirroring src/db/index.ts:
+ * Neon hosts go over the WebSocket driver (port 443), everything else uses
+ * node-postgres on 5432.
  */
+import { Pool as PgPool } from "pg";
+import { Pool as NeonPool, neonConfig } from "@neondatabase/serverless";
+import ws from "ws";
+
+/** Neon's URLs carry channel_binding, which node-postgres can't satisfy. */
 export function connectionStringFor(which = "pooled") {
   const raw =
     which === "unpooled"
@@ -14,7 +16,29 @@ export function connectionStringFor(which = "pooled") {
 
   if (!raw) throw new Error("DATABASE_URL is not set");
 
-  const url = new URL(raw);
-  url.searchParams.delete("channel_binding");
-  return url.toString();
+  try {
+    const url = new URL(raw);
+    url.searchParams.delete("channel_binding");
+    return url.toString();
+  } catch {
+    return raw;
+  }
+}
+
+export function createPool(which = "pooled") {
+  const connectionString = connectionStringFor(which);
+  let hostname = "";
+  try {
+    hostname = new URL(connectionString).hostname;
+  } catch {
+    /* key=value connection string */
+  }
+
+  if (hostname.endsWith(".neon.tech")) {
+    if (typeof globalThis.WebSocket === "undefined") {
+      neonConfig.webSocketConstructor = ws;
+    }
+    return new NeonPool({ connectionString });
+  }
+  return new PgPool({ connectionString });
 }

@@ -9,7 +9,7 @@
  */
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
-import { Client } from "pg";
+import { createPool } from "./db-url.mjs";
 
 const UPLOAD_DIR = path.join(process.cwd(), "uploads");
 const FILENAME_PATTERN =
@@ -30,8 +30,7 @@ try {
   process.exit(0);
 }
 
-const client = new Client({ connectionString: process.env.DATABASE_URL });
-await client.connect();
+const client = createPool();
 
 let imported = 0;
 let skipped = 0;

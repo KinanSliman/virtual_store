@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@neondatabase/serverless':
+        specifier: ^1.1.0
+        version: 1.1.0
       '@react-three/drei':
         specifier: ^10.7.7
         version: 10.7.8(@react-three/fiber@9.7.0(@types/react@19.2.18)(immer@11.1.16)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(three@0.185.1))(@types/react@19.2.18)(@types/three@0.185.4)(immer@11.1.16)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(three@0.185.1)
@@ -16,7 +19,7 @@ importers:
         version: 9.7.0(@types/react@19.2.18)(immer@11.1.16)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(three@0.185.1)
       drizzle-orm:
         specifier: ^0.45.2
-        version: 0.45.2(@types/pg@8.21.0)(pg@8.23.0)
+        version: 0.45.2(@neondatabase/serverless@1.1.0)(@types/pg@8.21.0)(pg@8.23.0)
       next:
         specifier: 16.2.10
         version: 16.2.10(@babel/core@7.29.7)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -35,6 +38,9 @@ importers:
       three:
         specifier: ^0.185.1
         version: 0.185.1
+      ws:
+        specifier: ^8.21.3
+        version: 8.21.3
       zustand:
         specifier: ^5.0.14
         version: 5.0.15(@types/react@19.2.18)(immer@11.1.16)(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4))
@@ -57,6 +63,9 @@ importers:
       '@types/three':
         specifier: ^0.185.0
         version: 0.185.4
+      '@types/ws':
+        specifier: ^8.18.1
+        version: 8.18.1
       babel-plugin-react-compiler:
         specifier: 1.0.0
         version: 1.0.0
@@ -868,6 +877,10 @@ packages:
       '@emnapi/core': ^1.7.1 || ^2.0.0-alpha.4
       '@emnapi/runtime': ^1.7.1 || ^2.0.0-alpha.4
 
+  '@neondatabase/serverless@1.1.0':
+    resolution: {integrity: sha512-r3ZZhRjEcfEdKIZnoB1RusNgvHuaBRqfCzV4Gi+5A9yUX0S4HTws/ASWqt13wL4y4I+0rqsWGdA2w7EQXHi3+Q==}
+    engines: {node: '>=19.0.0'}
+
   '@next/env@16.2.10':
     resolution: {integrity: sha512-zLPxg9M0MEHmygpj5OuxjQ+vHMiy/K7cSp74G8ecYolmgUWw0RwN02tF56npup/+qaI8JB97hQgS/r2Hb6QwVA==}
 
@@ -1171,6 +1184,9 @@ packages:
 
   '@types/webxr@0.5.24':
     resolution: {integrity: sha512-h8fgEd/DpoS9CBrjEQXR+dIDraopAEfu4wYVNY2tEPwk60stPWhvZMf4Foo5FakuQ7HFZoa8WceaWFervK2Ovg==}
+
+  '@types/ws@8.18.1':
+    resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
 
   '@typescript-eslint/eslint-plugin@8.67.0':
     resolution: {integrity: sha512-Un7Heoyj65NREbKAyIrFxeM143NZpExWmy1Nep4DLeQOeLlTeumPjoNKnBrU5D5moWXbPJgRa5Uwcdu0faVNGQ==}
@@ -3029,6 +3045,18 @@ packages:
     resolution: {integrity: sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==}
     engines: {node: '>=0.10.0'}
 
+  ws@8.21.3:
+    resolution: {integrity: sha512-201TZ/kPWxoPr/OKWjquZR1SWKXcvxdH+e1xrx89b3YbmzLMFCLfnaG1HFIgWzJOEWZ7MvpK++odZufgYR50Rw==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
   xtend@4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
     engines: {node: '>=0.4'}
@@ -3637,6 +3665,8 @@ snapshots:
       '@tybys/wasm-util': 0.10.3
     optional: true
 
+  '@neondatabase/serverless@1.1.0': {}
+
   '@next/env@16.2.10': {}
 
   '@next/eslint-plugin-next@16.2.10':
@@ -3902,6 +3932,10 @@ snapshots:
   '@types/use-sync-external-store@0.0.6': {}
 
   '@types/webxr@0.5.24': {}
+
+  '@types/ws@8.18.1':
+    dependencies:
+      '@types/node': 20.19.43
 
   '@typescript-eslint/eslint-plugin@8.67.0(@typescript-eslint/parser@8.67.0(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3))(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)':
     dependencies:
@@ -4372,8 +4406,9 @@ snapshots:
       esbuild: 0.25.12
       tsx: 4.23.12
 
-  drizzle-orm@0.45.2(@types/pg@8.21.0)(pg@8.23.0):
+  drizzle-orm@0.45.2(@neondatabase/serverless@1.1.0)(@types/pg@8.21.0)(pg@8.23.0):
     optionalDependencies:
+      '@neondatabase/serverless': 1.1.0
       '@types/pg': 8.21.0
       pg: 8.23.0
 
@@ -6007,6 +6042,8 @@ snapshots:
       isexe: 2.0.0
 
   word-wrap@1.2.5: {}
+
+  ws@8.21.3: {}
 
   xtend@4.0.2: {}
 

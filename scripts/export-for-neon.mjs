@@ -39,7 +39,7 @@ function literal(value) {
   return `'${String(value).replace(/'/g, "''")}'`;
 }
 
-const client = new Client({ connectionString: source });
+const client = new Client({ connectionString: source }); // always a local DB
 await client.connect();
 
 const parts = [];

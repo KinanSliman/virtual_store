@@ -100,33 +100,44 @@ The app talks to Postgres on every request, so a deployment needs a database it
 can actually reach — a `localhost` URL in the hosting provider's environment
 variables is the usual cause of a build that succeeds and then 500s.
 
+**Two drivers, picked by host** (`src/db/index.ts`). A `*.neon.tech` URL goes
+through `@neondatabase/serverless`, which carries the Postgres protocol over a
+WebSocket on port **443**; anything else uses `node-postgres` on 5432. This
+matters beyond serverless: plenty of networks — corporate filtering, VPNs, some
+ISPs — reset raw 5432 connections, which surfaces as `read ECONNRESET` the
+instant a query runs, from a machine with otherwise fine internet. Port 443
+gets through, so the same code works locally against Neon.
+
+Neon's connection strings also carry `channel_binding=require`, which
+node-postgres can't satisfy; the parameter is stripped before connecting, with
+TLS still enforced by `sslmode`.
+
 1. **Environment variables** in the Vercel project:
    - `DATABASE_URL` — Neon's **pooled** connection string (the `-pooler` host).
-     Each serverless invocation opens its own connection, and the pooler is
-     what keeps that from exhausting the database's connection slots.
-   - `DATABASE_URL_UNPOOLED` — the direct host, used for migrations. DDL isn't
-     reliable through a transaction-mode pooler.
+   - `DATABASE_URL_UNPOOLED` — the direct host, for migrations run with
+     `drizzle-kit`; DDL isn't reliable through a transaction-mode pooler.
 
-2. **Create the schema** on the hosted database, either way:
+2. **Create the schema** on the hosted database:
 
    ```bash
    DATABASE_URL="$DATABASE_URL_UNPOOLED" pnpm db:migrate
    ```
 
-   If your network blocks outbound port 5432 (Neon offers no other port), that
-   command will hang. Generate a single script from a working local database
-   and paste it into Neon's SQL Editor instead:
+   `drizzle-kit` connects on 5432, so on a network that blocks it, build one
+   SQL script from a working local database and apply it over the WebSocket
+   driver instead:
 
    ```bash
    node scripts/export-for-neon.mjs "postgres://user:pass@localhost:5432/virtual_store"
+   node --env-file=.env scripts/apply-sql.mjs neon-setup.sql
    ```
 
-   That writes `neon-setup.sql` — schema plus every row, including uploaded
-   images — which the browser-based editor runs without needing a direct
-   connection.
+   `neon-setup.sql` holds the schema plus every row, uploaded images included.
+   It can equally be pasted into Neon's browser SQL Editor.
 
-3. Keep the **local** Postgres URL in your `.env` for development. Pointing
-   `.env` at the hosted database only works if you can reach it directly.
+3. `node --env-file=.env scripts/db-status.mjs` lists the tables and row counts
+   of whatever `DATABASE_URL` points at — the quickest way to tell an empty
+   database from an unreachable one.
 
 Uploaded images are rows in the database rather than files on disk, so they
 survive on hosts with a read-only or ephemeral filesystem. `scripts/import-uploads.mjs`
