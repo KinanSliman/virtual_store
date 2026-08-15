@@ -1,4 +1,4 @@
-# Fresh Mart — a virtual grocery store
+# Virtual Store — a grocery store you walk through
 
 [![CI](https://github.com/KinanSliman/virtual_store/actions/workflows/ci.yml/badge.svg)](https://github.com/KinanSliman/virtual_store/actions/workflows/ci.yml)
 
@@ -9,6 +9,9 @@ dashboard manages the catalogue and reports on what shoppers actually did.
 Built with Next.js 16, TypeScript, PostgreSQL, and React Three Fiber. The
 storefront is bilingual (English / العربية) and works on desktop and touch.
 
+The store's name and logo are set from the dashboard, so the branding in the
+screenshots below is just what this instance was configured with.
+
 ```
 ┌──────────────────────────┐        ┌──────────────────────────┐
 │  /                       │        │  /dashboard              │
@@ -16,6 +19,29 @@ storefront is bilingual (English / العربية) and works on desktop and touc
 │  shoppers                │  same  │  the shopkeeper          │
 └──────────────────────────┘   DB   └──────────────────────────┘
 ```
+
+![The storefront, with the door open and the store name on the sign](docs/storefront.png)
+
+<p align="center"><em>The door swings open on arrival. The name on the sign, the
+logo, and the language are all live values — not baked into the scene.</em></p>
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/shelves.png" alt="Two stocked shelves, each product a labelled box"></td>
+    <td width="50%"><img src="docs/product-popup.png" alt="Product details with image, price and stock"></td>
+  </tr>
+  <tr>
+    <td><em>Every box is a database row — its artwork, colour, price and shelf
+    position all come from the catalogue.</em></td>
+    <td><em>Clicking a product opens its details and logs a view, which feeds
+    the analytics.</em></td>
+  </tr>
+</table>
+
+![The dashboard product table](docs/dashboard.png)
+
+<p align="center"><em>The catalogue behind it all — stock, shelf placement, and
+low-stock warnings, behind a password.</em></p>
 
 ---
 
@@ -168,6 +194,10 @@ mapped onto a plane
 ([`TextPlane.tsx`](src/components/store3d/TextPlane.tsx)). Canvas goes through
 the platform's text engine, which shapes Arabic correctly — joined letterforms,
 right-to-left ordering — and falls back per-glyph across a font stack.
+
+The sign in the [first screenshot](docs/storefront.png) and the shelf labels in
+[the second](docs/shelves.png) are that technique: real shaped Arabic rendered
+into a WebGL scene.
 
 ### Product images
 
