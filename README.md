@@ -1,6 +1,11 @@
 # Virtual Store — a grocery store you walk through
 
+**[▶ Open the live store](https://virtual-store-vert.vercel.app/)**
+
 [![CI](https://github.com/KinanSliman/virtual_store/actions/workflows/ci.yml/badge.svg)](https://github.com/KinanSliman/virtual_store/actions/workflows/ci.yml)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6)](https://www.typescriptlang.org)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Drizzle-336791)](https://orm.drizzle.team)
 
 A grocery store you walk through in the browser. Push open the door, wander the
 aisle, pick products off the shelves, and check out — while a separate admin
@@ -303,7 +308,8 @@ production build on every push and pull request.
 
 ## Deployment
 
-Deployed on Vercel with a Neon database. The app queries Postgres on every
+Live at **[virtual-store-vert.vercel.app](https://virtual-store-vert.vercel.app/)**,
+running on Vercel with a Neon database. The app queries Postgres on every
 request, so the deployment needs a database it can actually reach — a
 `localhost` URL in the host's environment variables produces a build that
 succeeds and then returns a server error on every page.
